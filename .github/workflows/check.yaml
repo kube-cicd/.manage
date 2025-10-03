@@ -1,0 +1,35 @@
+name: "Terraform Pull Request checks"
+ 
+on:
+    push:
+    # pull_request:
+    #     branches:
+    #         - main
+ 
+jobs:
+    terraform:
+        name: "Terraform Infrastructure Change Management"
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                shell: bash
+        permissions:
+            actions: read        # Required to identify workflow run.
+            checks: write        # Required to add status summary.
+            contents: read       # Required to checkout repository.
+            pull-requests: write # Required to add PR comment.
+ 
+        steps:
+            - name: Checkout the repository
+              uses: actions/checkout@v2
+        
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v3
+              with:
+                  terraform_version: 1.14.0
+                  terraform_wrapper: false
+
+            - name: Plan
+              uses: op5dev/tf-via-pr@v13
+              with:
+                    command: "plan"
