@@ -14,22 +14,41 @@ jobs:
             run:
                 shell: bash
         permissions:
-            actions: read        # Required to identify workflow run.
-            checks: write        # Required to add status summary.
-            contents: read       # Required to checkout repository.
-            pull-requests: write # Required to add PR comment.
+            actions: read         # Required to identify workflow run.
+            checks: write         # Required to add status summary.
+            contents: write       # Required to checkout repository.
+            pull-requests: write  # Required to add PR comment.
+            id-token: write
  
         steps:
-            - name: Checkout the repository
+            - name: Setup AWS connection for state management
+              uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+              with:
+                    role-to-assume: arn:aws:iam::026015377954:role/kube-cicd-actions-role
+                    role-session-name: github-actions
+                    aws-region: eu-central-1
+
+            - name: Generate token for GitHub App
+              id: gh-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ secrets.GH_ORG_APP_ID }}
+                  private-key: ${{ secrets.GH_ORG_APP_PRIVATE_KEY }}
+                  owner: kube-cicd
+
+            - name: Checkout
               uses: actions/checkout@v2
         
             - name: Setup Terraform
               uses: hashicorp/setup-terraform@v3
               with:
-                  terraform_version: 1.14.0
+                  terraform_version: 1.13.3
                   terraform_wrapper: false
 
             - name: Plan
               uses: op5dev/tf-via-pr@v13
               with:
                     command: "plan"
+                    upload-plan: false
+              env:
+                  GITHUB_TOKEN: ${{ steps.gh-token.outputs.token }}
