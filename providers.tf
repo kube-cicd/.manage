@@ -17,6 +17,4 @@ terraform {
 
 provider "github" {
   owner       = "kube-cicd"
-  # owner = var.owner
-  # token = var.github_token
 }
