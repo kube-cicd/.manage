@@ -4,7 +4,7 @@ Terraform spec for the GitHub account
 ## Architecture & Workflow
 
 - State file and the lock file is on AWS S3. The IaC code for this is in separate repository (https://github.com/keskad/manage-aws)
-- Connection with AWS is using OIDC instead of statically generated credentials (https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws)
+- Connection with AWS uses [OpenID Connect (OIDC)](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws) instead of statically generated credentials.
 - The pipeline is running on push to master and applying the changes
 - On merge requests there is a static code analysis in order to review the changes easily
 - Sensitive data is stored only in GitHub's Secrets and referred to in a Pipeline securely
