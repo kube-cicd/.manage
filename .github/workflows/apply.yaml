@@ -1,9 +1,15 @@
-name: "Pull Request Check"
+name: "Apply"
  
 on:
-    pull_request:
+    push:
         branches:
             - main
+
+        # run apply only, when Terraform files are modified
+        paths:
+            - '*.tf'
+            - '*.tfvars'
+            - '*.hcl'
  
 jobs:
     terraform:
@@ -43,11 +49,19 @@ jobs:
               with:
                   terraform_version: 1.13.3
                   terraform_wrapper: false
+            
+            - name: Init
+              id: init
+              run: terraform init -input=false 
 
             - name: Plan
-              uses: op5dev/tf-via-pr@v13
-              with:
-                    command: "plan"
-                    upload-plan: false
+              id: plan
+              continue-on-error: true
+              run: terraform plan -input=false -no-color -out=tfplan && terraform show -no-color tfplan
               env:
                   GITHUB_TOKEN: ${{ steps.gh-token.outputs.token }}
+
+            - name: Apply
+              continue-on-error: true
+              if: steps.plan.outcome == 'success'
+              run: terraform apply -auto-approve -input=false -no-color tfplan
